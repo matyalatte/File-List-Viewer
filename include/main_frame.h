@@ -20,6 +20,7 @@ class MainFrame : public wxFrame {
     void ReadFileList(const char* file);
     void SaveFileList();
     void OnClose(wxCloseEvent& event);
+    void OnOpenURL(wxCommandEvent& event);
     void ShowErrorDialog(const wxString& msg);
     void ShowSuccessDialog(const wxString& msg, const wxString& title = "Success");
     bool HasEmptyList() { return !m_file_tree || !(m_file_tree->HasChild()); }
