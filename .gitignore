@@ -6,12 +6,12 @@ Debug*
 coverage-report
 *.json
 *.txt
-!test/*.txt
-*.list
+!tests/*.txt
 !changelog.txt
 !CMakeLists.txt
 !license.txt
 !WX_VERSION.txt
+*.list
 
 #for windows
 .vs*
