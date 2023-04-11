@@ -1,0 +1,2 @@
+/unix/trash/bin
+/unix/what.txt

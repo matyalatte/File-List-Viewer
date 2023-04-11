@@ -1,0 +1,97 @@
+name: build
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+  
+env:
+  ZIP_NAME: FileListViewer
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.check-tag.outputs.tag }}
+      url: ${{ steps.create-release.outputs.upload_url }}
+      wx_version: ${{ steps.wx-version.outputs.version }}
+    steps:
+    
+      - name: Check tag
+        id: check-tag
+        run: |
+          if [[ ${{ github.ref }} == refs/tags/v* ]]; then
+            TAG=$(echo ${{ github.ref }} | sed -e "s#refs/tags/##g")
+          else
+            TAG=$(echo ${{ github.sha }} | cut -c1-7)
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        shell: bash
+      
+      - uses: actions/checkout@v3
+
+      - name: Check wxWidget version
+        id: wx-version
+        run: |
+          VERSION=$(cat WX_VERSION.txt)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Create Release Draft
+        id: create-release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.check-tag.outputs.tag }}
+          name: ${{ steps.check-tag.outputs.tag }}
+          body: |
+            Changelog
+            - First Change
+            - Second Change
+          draft: true
+          prerelease: false
+       
+  build_windows:
+    runs-on: windows-2022
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Cache wxWidget
+        uses: actions/cache@v3
+        id: cache-wx
+        with:
+            path: "C:/wxWidgets-${{ needs.setup.outputs.wx_version }}"
+            key: ${{ runner.os }}-wx${{ needs.setup.outputs.wx_version }}
+        
+      - name: install wxWidget
+        if: steps.cache-wx.outputs.cache-hit != 'true'
+        run: |
+          cd batch_files
+          ./download_wxWidgets.bat
+          ./build_wxWidgets.bat
+
+      - name: build exe
+        run: |
+          cd batch_files
+          ./build_exe.bat
+          
+      - name: copy files
+        run: |
+          mkdir -p archive
+          cp Release/Release/FileListViewer.exe archive
+          cp changelog.txt archive
+          cp license.txt archive
+        shell: bash
+        
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
+        with:
+          directory: 'archive'
+          type: 'zip'
+          filename: '${{ env.ZIP_NAME }}-${{ needs.setup.outputs.tag }}-${{ runner.os }}.zip'
+
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ needs.setup.outputs.tag }} archive/${{ env.ZIP_NAME }}-${{ needs.setup.outputs.tag }}-${{ runner.os }}.zip
