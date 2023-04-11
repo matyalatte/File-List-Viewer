@@ -1,4 +1,4 @@
-# File-List-Viewer
+# File-List-Viewer v0.1.0
 
 ![build](https://github.com/matyalatte/File-List-Viewer/actions/workflows/build.yml/badge.svg)
 <a href="https://www.buymeacoffee.com/matyalatteQ" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>  
@@ -12,7 +12,6 @@ It can get a list of paths from txt, visualize it as a file tree, and dump only 
 
 ![GUI](https://user-images.githubusercontent.com/69258547/231185813-1d31405b-cefb-4f52-9255-8ce24dbeb9c5.png)
 ![Edited](https://user-images.githubusercontent.com/69258547/231185964-4e75ed3b-6c35-4694-89cb-0f11c286070b.png)
-
 
 ## Downloads
 

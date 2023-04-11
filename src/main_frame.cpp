@@ -1,11 +1,11 @@
 #include "main_frame.h"
 
-const char* TOOL_NAME = "File List Viewer";
-const char* VERSION = "0.0.1";
+const std::string TOOL_NAME = "File List Viewer";
+const std::string VERSION = "0.1.0";
 
 // Main window
 MainFrame::MainFrame()
-    : wxFrame(nullptr, wxID_ANY, TOOL_NAME) {
+    : wxFrame(nullptr, wxID_ANY, TOOL_NAME + " v" + VERSION) {
     std::cout << TOOL_NAME << " v" << VERSION << " by matyalatte" << std::endl;
     m_file_tree = std::make_unique<FileTree>();
     CreateFrame();
@@ -21,6 +21,11 @@ void MainFrame::CreateFrame() {
     menu_file->Append(wxID_EXIT, "Quit");
     menu_bar->Append(menu_file, "Menu");
 
+    wxMenu* menu_help = new wxMenu;
+    menu_help->Append(wxID_HIGHEST + 1, "README");
+    menu_help->Bind(wxEVT_MENU, &MainFrame::OnOpenURL,
+                    this, wxID_HIGHEST + 1);
+    menu_bar->Append(menu_help, "Help");
     SetMenuBar(menu_bar);
 
     // set events
@@ -105,6 +110,16 @@ void MainFrame::SaveFileList() {
 
     ShowSuccessDialog("Saved as " + save_file_dialog.GetPath() + ".", "Saved");
     m_tree_ctrl->SetSaveStatus(true);
+}
+
+void MainFrame::OnOpenURL(wxCommandEvent& event) {
+    size_t id = event.GetId() - 1 - wxID_HIGHEST;
+    wxString url[1] = {"https://github.com/matyalatte/File-List-Viewer"};
+    std::cout << "Opening " << url[id] << "..." << std::endl;
+    bool success = wxLaunchDefaultBrowser(url[id]);
+    if (!success) {
+        std::cout << "Failed to open url by an unexpected error." << std::endl;
+    }
 }
 
 void MainFrame::ShowErrorDialog(const wxString& msg) {
