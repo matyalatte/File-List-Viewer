@@ -1,0 +1,32 @@
+#general
+build
+out
+Release*
+Debug*
+coverage-report
+*.json
+*.txt
+!test/*.txt
+*.list
+!changelog.txt
+!CMakeLists.txt
+!license.txt
+!WX_VERSION.txt
+
+#for windows
+.vs*
+out
+*.exe
+*.zip
+*.bat
+!batch_files/*.bat
+
+# for unix
+*.sh
+!shell_scripts/*.sh
+*.tar.*
+
+# for test scripts
+python
+*.py
+
