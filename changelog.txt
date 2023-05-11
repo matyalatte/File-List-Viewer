@@ -1,2 +1,6 @@
+v0.2.0
+- Added "Filter by Filename" option.
+- Added command-line utils.
+
 v0.1.0
 - Initial release

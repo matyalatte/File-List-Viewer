@@ -1,7 +1,7 @@
 #include "main_frame.h"
 
 const std::string TOOL_NAME = "File List Viewer";
-const std::string VERSION = "0.1.0";
+const std::string VERSION = "0.2.0";
 
 // Main window
 MainFrame::MainFrame()
@@ -34,31 +34,56 @@ void MainFrame::CreateFrame() {
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { SaveFileList(); }, wxID_SAVE);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { Close(true); }, wxID_EXIT);
 
-    // make tree viewer
+    SetBackgroundColour(wxColour(230, 230, 230));
+
+    // Sizer for all components
+    wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
+
+    // Add text box for filter
+    wxBoxSizer* text_sizer = new wxBoxSizer(wxHORIZONTAL);
+    text_sizer->Add(
+        new wxStaticText(this, -1, "Filter by Filename:"),
+        0, wxALIGN_CENTER | wxALL, 1);
+    m_filter_ctrl = new wxTextCtrl(
+        this, -1, wxEmptyString,
+        wxDefaultPosition, wxSize(100, 25), wxTE_PROCESS_ENTER);
+    m_old_filter = wxEmptyString;
+    Bind(wxEVT_TEXT_ENTER, &MainFrame::OnFilter, this);
+    text_sizer->Add(m_filter_ctrl, 1, wxEXPAND | wxALL, 1);
+    topsizer->Add(text_sizer, 0, wxEXPAND | wxALL, 1);
+
+    // Add tree viewer
     m_tree_ctrl = new CustomTreeCtrl(this, wxID_ANY,
                                      wxDefaultPosition, wxDefaultSize,
                                      wxTR_DEFAULT_STYLE | wxTR_HIDE_ROOT);
     wxImageList* image_list = GetImageList();
     m_tree_ctrl->SetImageList(image_list);
     m_tree_ctrl->SetDropTarget(new FileDropTarget(this));
+    topsizer->Add(m_tree_ctrl, 1, wxEXPAND);
+
+    SetSizerAndFit(topsizer);
     SetSize(wxSize(320, 320));
-    Fit();
 }
 
 const size_t MAX_PATH_LENGTH = 1000;
 
-void MainFrame::ReadFileList(const char* file) {
+bool MainFrame::ReadFileList(const char* file) {
     // Read txt and store path list as tree
     std::cout << "Reading " << file << "..." << std::endl;
     std::ifstream istream(file);
+    if (!istream) {
+        ShowErrorDialog("Error: Failed to open " + wxString(file));
+        return false;
+    }
     char line[MAX_PATH_LENGTH];
     m_file_tree = std::make_unique<FileTree>();
     for (line; istream.getline(line, MAX_PATH_LENGTH); ) {
         m_file_tree->AddItem(&line[0]);
     }
+    return true;
 }
 
-void MainFrame::OpenFileList(const wxString& filename) {
+void MainFrame::OpenFileList(wxString filename) {
     if (!HasEmptyList() && !IsSaved()) {
         // Check if current tree is saved or not
         int ret = wxMessageBox(_("Current content has not been saved! Proceed?"),
@@ -67,16 +92,21 @@ void MainFrame::OpenFileList(const wxString& filename) {
         if (ret == wxNO) return;
     }
 
+    bool res = false;
     if (filename == "") {
         // File select
         wxFileDialog open_file_dialog(this, _("Open File List"), "", "",
                                       "file list (*)|*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (open_file_dialog.ShowModal() == wxID_CANCEL)
             return;
-        ReadFileList(open_file_dialog.GetPath().ToUTF8().data());
-    } else {
-        ReadFileList(filename.ToUTF8().data());
+        filename = open_file_dialog.GetPath();
     }
+
+    wxStopWatch  stop_watch;
+    stop_watch.Start();
+
+    res = ReadFileList(filename.ToUTF8().data());
+    if (!res) { return; }
 
     // Initialize tree viewer
     m_tree_ctrl->DeleteAllItems();
@@ -84,9 +114,9 @@ void MainFrame::OpenFileList(const wxString& filename) {
 
     // Load tree to tree viewer
     std::cout << "Constructiong GUI..." << std::endl;
-    m_file_tree->AddToTreeCtrl(m_tree_ctrl);
-
-    std::cout << "Done." << std::endl;
+    m_file_tree->InitializeTreeCtrl(m_tree_ctrl);
+    m_tree_ctrl->SortAll(m_tree_ctrl->GetRootItem());
+    std::cout << "Done. (" << stop_watch.Time() << " ms)" << std::endl;
     m_tree_ctrl->SetSaveStatus(true);
 }
 
@@ -103,10 +133,13 @@ void MainFrame::SaveFileList() {
         return;
 
     // Dump path list as txt
-    std::cout << "Saving " << save_file_dialog.GetPath() << "..." << std::endl;
+    std::cout << "Saving " << save_file_dialog.GetPath() << "... ";
     std::ofstream ostream(save_file_dialog.GetPath().ToUTF8().data());
+    if (!ostream) {
+        ShowErrorDialog("Error: Failed to open " + save_file_dialog.GetPath());
+        return;
+    }
     m_file_tree->DumpPaths(ostream, m_tree_ctrl);
-    std::cout << "Done." << std::endl;
 
     ShowSuccessDialog("Saved as " + save_file_dialog.GetPath() + ".", "Saved");
     m_tree_ctrl->SetSaveStatus(true);
@@ -118,7 +151,7 @@ void MainFrame::OnOpenURL(wxCommandEvent& event) {
     std::cout << "Opening " << url[id] << "..." << std::endl;
     bool success = wxLaunchDefaultBrowser(url[id]);
     if (!success) {
-        std::cout << "Failed to open url by an unexpected error." << std::endl;
+        ShowErrorDialog("Failed to open url by an unexpected error.");
     }
 }
 
@@ -131,9 +164,23 @@ void MainFrame::ShowErrorDialog(const wxString& msg) {
 
 void MainFrame::ShowSuccessDialog(const wxString& msg, const wxString& title) {
     wxMessageDialog* dialog;
+    std::cout << msg << std::endl;
     dialog = new wxMessageDialog(this, msg, title);
     dialog->ShowModal();
     dialog->Destroy();
+}
+
+void MainFrame::OnFilter(wxCommandEvent& event) {
+    wxString new_filter = m_filter_ctrl->GetValue();
+    if (m_old_filter == new_filter) { return; }
+    wxStopWatch  stop_watch;
+    stop_watch.Start();
+    std::cout << "Filtering... ";
+    m_file_tree->Filter(std::string(new_filter.utf8_str()), m_tree_ctrl);
+    m_tree_ctrl->UpdateAllStatus(m_tree_ctrl->GetRootItem());
+    m_tree_ctrl->SortAll(m_tree_ctrl->GetRootItem());
+    m_old_filter = new_filter;
+    std::cout << "Done. (" << stop_watch.Time() << " ms)" << std::endl;
 }
 
 void MainFrame::OnClose(wxCloseEvent& event) {

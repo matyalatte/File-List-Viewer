@@ -1,0 +1,5 @@
+noneed/foo/bar.png
+noneed/Foo/hello.txt
+Wantit/test/this.txt
+wantit/that.jpg
+what

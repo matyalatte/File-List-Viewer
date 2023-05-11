@@ -1,9 +1,11 @@
 #pragma once
 #include <memory>
-#include "wx/wx.h"
+#include <wx/wx.h>
+#include <wx/colour.h>
+#include <wx/stopwatch.h>
+#include <wx/dnd.h>
 #include "file_tree.h"
 #include "image_gen.h"
-#include "wx/dnd.h"
 
 class FileDropTarget;
 
@@ -15,9 +17,11 @@ class MainFrame : public wxFrame {
     FileDropTarget* m_drop_target;
     CustomTreeCtrl* m_tree_ctrl;
     std::unique_ptr<FileTree> m_file_tree;
+    wxTextCtrl* m_filter_ctrl;
+    wxString m_old_filter;
 
     void CreateFrame();
-    void ReadFileList(const char* file);
+    bool ReadFileList(const char* file);
     void SaveFileList();
     void OnClose(wxCloseEvent& event);
     void OnOpenURL(wxCommandEvent& event);
@@ -25,10 +29,11 @@ class MainFrame : public wxFrame {
     void ShowSuccessDialog(const wxString& msg, const wxString& title = "Success");
     bool HasEmptyList() { return !m_file_tree || !(m_file_tree->HasChild()); }
     bool IsSaved() { return m_tree_ctrl->IsSaved(); }
+    void OnFilter(wxCommandEvent& event);
 
  public:
     MainFrame();
-    void OpenFileList(const wxString& filename = "");
+    void OpenFileList(wxString filename = "");
 };
 
 // Set this target to m_tree_ctrl.

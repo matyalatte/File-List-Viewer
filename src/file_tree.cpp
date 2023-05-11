@@ -1,13 +1,5 @@
 #include "file_tree.h"
 
-std::string operator * (std::string a, unsigned int b) {
-    std::string output = "";
-    while (b--) {
-        output += a;
-    }
-    return output;
-}
-
 char* GetChildPath(char* path) {
     // split char* by "/"" or "\"
     // "path" will be root dir name, "chr" will be the rest.
@@ -37,24 +29,21 @@ void FileTree::AddItem(char* path) {
     }
 }
 
-void FileTree::AddToTreeCtrl(CustomTreeCtrl* tree_ctrl) {
-    wxTreeItemId parent_item;
+void FileTree::InitializeTreeCtrl(CustomTreeCtrl* tree_ctrl) {
     if (HasParent()) {
-        parent_item = m_parent->m_wx_item;
-        int image_id;
         if (HasChild()) {
-            image_id = static_cast<int>(ImageID::FOLDER);
+            m_image_id = static_cast<int>(ImageID::FOLDER);
         } else {
-            image_id = static_cast<int>(ImageID::FILE);
+            m_image_id = static_cast<int>(ImageID::FILE);
         }
-        m_wx_item = tree_ctrl->AppendItem(parent_item, m_name, image_id);
+        m_wx_item = tree_ctrl->AppendItem(m_parent->GetId(), m_wx_name, m_image_id);
     } else {
         m_wx_item = tree_ctrl->GetRootItem();
     }
 
     // Add children to tree ctrl
     for (auto iter = m_items.begin(); iter != m_items.end(); ++iter) {
-        iter->second->AddToTreeCtrl(tree_ctrl);
+        iter->second->InitializeTreeCtrl(tree_ctrl);
     }
 }
 
@@ -66,6 +55,8 @@ FileTree::~FileTree() {
 
 void FileTree::DumpPaths(std::ostream& out, CustomTreeCtrl* tree_ctrl,
                          const std::string& parent_path) {
+    if (!IsVisible()) { return; }
+
     std::string current_path;
     if (HasParent() && !m_parent->HasParent()) {
         current_path = m_name;
@@ -74,7 +65,7 @@ void FileTree::DumpPaths(std::ostream& out, CustomTreeCtrl* tree_ctrl,
     }
 
     if (!HasChild()) {
-        if (tree_ctrl->IsChecked(m_wx_item)) {
+        if (!tree_ctrl || tree_ctrl->IsChecked(m_wx_item)) {
             // Out put a file path
             out << current_path << "\n";
         }
@@ -87,12 +78,48 @@ void FileTree::DumpPaths(std::ostream& out, CustomTreeCtrl* tree_ctrl,
     }
 }
 
-std::ostream& operator<<(std::ostream& out, const FileTree& file_tree) {
-    std::string indent = " ";
-    indent = indent * file_tree.m_depth * 2;
-    for (auto iter = file_tree.m_items.begin(); iter != file_tree.m_items.end(); ++iter) {
-        out << indent << iter->first << "\n";
-        out << *(iter->second);
+void FileTree::Filter(const std::string& filter, CustomTreeCtrl* tree_ctrl) {
+    if (!HasChild()) {
+        if (m_name.find(filter) == std::string::npos) {
+            RemoveFromCtrl(tree_ctrl);
+        }
+        else {
+            AddToCtrl(tree_ctrl);
+        }
+        return;
     }
-    return out;
+
+    // if HasChild()
+    for (auto iter = m_items.begin(); iter != m_items.end(); ++iter) {
+        iter->second->Filter(filter, tree_ctrl);
+    }
+}
+
+void FileTree::RemoveFromCtrl(CustomTreeCtrl* tree_ctrl) {
+    if (!IsVisible() || !HasParent()) return;
+    m_visible = false;
+    tree_ctrl->Delete(m_wx_item);
+    if (tree_ctrl->ItemHasChildren(m_parent->GetId())) return;
+    m_parent->RemoveFromCtrl(tree_ctrl);
+}
+
+void FileTree::AddToCtrl(CustomTreeCtrl* tree_ctrl) {
+    if (IsVisible()) return;
+    if (HasParent()) m_parent->AddToCtrl(tree_ctrl);
+    m_visible = true;
+    m_wx_item = tree_ctrl->AppendItem(m_parent->GetId(), m_wx_name, m_image_id);
+}
+
+void FileTree::MakeDir(const wxString& o_dir) {
+    if (!HasChild()) return;
+    wxString new_o_dir = o_dir + wxFILE_SEP_PATH + m_wx_name;
+    if (!wxDirExists(new_o_dir)) {
+        if (!wxMkdir(new_o_dir)) {
+            wxString msg = "Error: Failed to make " + new_o_dir;
+            throw std::runtime_error(msg);
+        }
+    }
+    for (auto iter = m_items.begin(); iter != m_items.end(); ++iter) {
+        iter->second->MakeDir(new_o_dir);
+    }
 }

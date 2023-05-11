@@ -3,6 +3,7 @@
 CustomTreeCtrl::CustomTreeCtrl(wxWindow* parent, wxWindowID id,
                                const wxPoint& pos, const wxSize& size, long style)
                                : wxTreeCtrl(parent, id, pos, size, style) {
+    m_is_saved = true;
     Bind(wxEVT_TREE_ITEM_ACTIVATED, &CustomTreeCtrl::OnActivated, this);
     Bind(wxEVT_TREE_ITEM_MENU, &CustomTreeCtrl::OnItemMenu, this);
 }
@@ -18,7 +19,7 @@ void CustomTreeCtrl::OnActivated(wxTreeEvent& event) {
             new_id = static_cast<int>(ImageID::CHECK);
         }
         SetItemImage(id, new_id);
-        CheckStatus(GetItemParent(id));
+        UpdateParentStatus(GetItemParent(id));
         m_is_saved = false;
     }
 }
@@ -35,12 +36,12 @@ void CustomTreeCtrl::OnItemMenu(wxTreeEvent& event) {
 // Check or uncheck all child nodes
 void CustomTreeCtrl::SelectAll() {
     if (IsChecked(m_event_item)) {
-        UncheckChildren(m_event_item);
+        UncheckAll(m_event_item);
     } else {
-        CheckChildren(m_event_item);
+        CheckAll(m_event_item);
     }
     m_is_saved = false;
-    CheckStatus(GetItemParent(m_event_item));
+    UpdateParentStatus(GetItemParent(m_event_item));
 }
 
 wxString CustomTreeCtrl::GetCheckMenuText(const wxTreeItemId& id) {
@@ -61,20 +62,20 @@ bool CustomTreeCtrl::IsChecked(const wxTreeItemId& id) {
 }
 
 // Check all child nodes
-void CustomTreeCtrl::CheckChildren(const wxTreeItemId& id) {
+void CustomTreeCtrl::CheckAll(const wxTreeItemId& id) {
     if (IsChecked(id)) return;
     SetItemImage(id, static_cast<int>(ImageID::CHECK));
     wxTreeItemIdValue cookie;
     wxTreeItemId item;
     item = GetFirstChild(id, cookie);
     while (item.IsOk()) {
-        CheckChildren(item);
+        CheckAll(item);
         item = GetNextChild(id, cookie);
     }
 }
 
 // Uncheck all child nodes
-void CustomTreeCtrl::UncheckChildren(const wxTreeItemId& id) {
+void CustomTreeCtrl::UncheckAll(const wxTreeItemId& id) {
     if (!IsChecked(id)) return;
     int new_image_id;
     if (GetChildrenCount(id, false) > 0) {
@@ -87,12 +88,12 @@ void CustomTreeCtrl::UncheckChildren(const wxTreeItemId& id) {
     wxTreeItemId item;
     item = GetFirstChild(id, cookie);
     while (item.IsOk()) {
-        UncheckChildren(item);
+        UncheckAll(item);
         item = GetNextChild(id, cookie);
     }
 }
 
-void CustomTreeCtrl::CheckStatus(const wxTreeItemId& root) {
+void CustomTreeCtrl::UpdateParentStatus(const wxTreeItemId& root) {
     if (!root.IsOk()) return;
 
     // check if all children are checked
@@ -111,10 +112,47 @@ void CustomTreeCtrl::CheckStatus(const wxTreeItemId& root) {
     // update status
     if (all_checked && !IsChecked(root)) {
         SetItemImage(root, static_cast<int>(ImageID::CHECK));
-        CheckStatus(GetItemParent(root));  // check parent as well
+        UpdateParentStatus(GetItemParent(root));  // check parent as well
     }
     if (!all_checked && IsChecked(root)) {
         SetItemImage(root, static_cast<int>(ImageID::FOLDER));
-        CheckStatus(GetItemParent(root));  // check parent as well
+        UpdateParentStatus(GetItemParent(root));  // check parent as well
+    }
+}
+
+void CustomTreeCtrl::UpdateAllStatus(const wxTreeItemId& root) {
+    if (!root.IsOk() || !ItemHasChildren(root)) return;
+
+    // check if all children are checked
+    bool all_checked = true;
+    wxTreeItemIdValue cookie;
+    wxTreeItemId item;
+    item = GetFirstChild(root, cookie);
+    while (item.IsOk()) {
+        UpdateAllStatus(item);
+        if (!IsChecked(item)) {
+            all_checked = false;
+            break;
+        }
+        item = GetNextChild(root, cookie);
+    }
+
+    // update status
+    if (all_checked) {
+        SetItemImage(root, static_cast<int>(ImageID::CHECK));
+    } else {
+        SetItemImage(root, static_cast<int>(ImageID::FOLDER));
+    }
+}
+
+void CustomTreeCtrl::SortAll(const wxTreeItemId& root) {
+    if (!root.IsOk() || !ItemHasChildren(root)) return;
+    SortChildren(root);
+    wxTreeItemIdValue cookie;
+    wxTreeItemId item;
+    item = GetFirstChild(root, cookie);
+    while (item.IsOk()) {
+        SortAll(item);
+        item = GetNextChild(root, cookie);
     }
 }

@@ -3,7 +3,7 @@
 #include <wx/imaglist.h>
 
 // IDs for image list
-enum struct ImageID {
+enum class ImageID {
     FOLDER,  // wxART_FOLDER
     FILE,    // wxART_NORMAL_FILE
     CHECK,   // wxART_TICK_MARK
