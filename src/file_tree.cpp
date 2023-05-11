@@ -32,9 +32,9 @@ void FileTree::AddItem(char* path) {
 void FileTree::InitializeTreeCtrl(CustomTreeCtrl* tree_ctrl) {
     if (HasParent()) {
         if (HasChild()) {
-            m_image_id = static_cast<int>(ImageID::FOLDER);
+            m_image_id = IMAGE_ID_FOLDER;
         } else {
-            m_image_id = static_cast<int>(ImageID::FILE);
+            m_image_id = IMAGE_ID_FILE;
         }
         m_wx_item = tree_ctrl->AppendItem(m_parent->GetId(), m_wx_name, m_image_id);
     } else {
@@ -113,11 +113,9 @@ void FileTree::AddToCtrl(CustomTreeCtrl* tree_ctrl) {
 void FileTree::MakeDir(const wxString& o_dir) {
     if (!HasChild()) return;
     wxString new_o_dir = o_dir + wxFILE_SEP_PATH + m_wx_name;
-    if (!wxDirExists(new_o_dir)) {
-        if (!wxMkdir(new_o_dir)) {
-            wxString msg = "Error: Failed to make " + new_o_dir;
-            throw std::runtime_error(msg);
-        }
+    if (!wxDirExists(new_o_dir) && !wxMkdir(new_o_dir)) {
+        wxString msg = "Error: Failed to make " + new_o_dir;
+        throw std::runtime_error(msg);
     }
     for (auto iter = m_items.begin(); iter != m_items.end(); ++iter) {
         iter->second->MakeDir(new_o_dir);

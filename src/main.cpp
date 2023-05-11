@@ -75,6 +75,8 @@ wxString CharToWxStr(const char* arg) {
 
 bool Mkdir(const wxString& dir) {
     if (!wxDirExists(dir)) {
+        wxString parent = wxFileName(dir).GetPath();
+        if (!Mkdir(parent)) return false;
         if (!wxMkdir(dir)) {
             std::cout << "Error: Failed to make " << dir << std::endl;
             return false;
@@ -206,7 +208,7 @@ bool ParseOptions(int argc, wchar_t* argv[],
             }
             if (i + 1 >= argc) {
                 PrintHelp();
-                std::cout << "'" << arg << "' option requires a path." << std::endl;
+                std::cout << "Error: '" << arg << "' option requires a path." << std::endl;
                 return false;
             }
             wxString path(CharToWxStr(argv[i + 1]));
@@ -229,6 +231,18 @@ bool ParseOptions(int argc, wchar_t* argv[],
     }
     return true;
 }
+
+bool PathToAbsolute(wxString& str) {
+    wxFileName path(str);
+    bool success = path.MakeAbsolute();
+    if (!success) {
+        std::cout << "Error: Failed to make an absolute path from (" << str << ")" << std::endl;
+        return false;
+    }
+    str = path.GetFullPath();
+    return true;
+}
+
 
 #ifdef _WIN32
 int wmain(int argc, wchar_t* argv[]) {
@@ -255,8 +269,8 @@ int main(int argc, char* argv[]) {
     wxString output_filename = "";
     wxString input_file = "";
 
-    bool parsed = ParseOptions(argc, argv, output_dir, output_filename, input_file);
-    if (!parsed) return 1;
+    bool success = ParseOptions(argc, argv, output_dir, output_filename, input_file);
+    if (!success) return 1;
 
     if (cmd_id != CMD_HELP && input_file == "") {
         PrintHelp();
@@ -270,6 +284,10 @@ int main(int argc, char* argv[]) {
         wxFileName::SplitPath(input_file, nullptr, nullptr, &fname, &ext);
         output_filename = fname + "." + ext;
     }
+
+    success = PathToAbsolute(output_dir);
+    std::cout << output_dir << std::endl;
+    if (!success) return 1;
 
     int ret = 0;
     switch (cmd_id) {

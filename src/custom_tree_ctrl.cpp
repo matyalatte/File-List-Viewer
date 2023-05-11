@@ -14,9 +14,9 @@ void CustomTreeCtrl::OnActivated(wxTreeEvent& event) {
     if (id && GetChildrenCount(id, false) == 0) {
         int new_id;
         if (IsChecked(id)) {
-            new_id = static_cast<int>(ImageID::FILE);
+            new_id = IMAGE_ID_FILE;
         } else {
-            new_id = static_cast<int>(ImageID::CHECK);
+            new_id = IMAGE_ID_CHECK;
         }
         SetItemImage(id, new_id);
         UpdateParentStatus(GetItemParent(id));
@@ -58,13 +58,13 @@ wxString CustomTreeCtrl::GetCheckMenuText(const wxTreeItemId& id) {
 }
 
 bool CustomTreeCtrl::IsChecked(const wxTreeItemId& id) {
-    return GetItemImage(id) == static_cast<int>(ImageID::CHECK);
+    return GetItemImage(id) == IMAGE_ID_CHECK;
 }
 
 // Check all child nodes
 void CustomTreeCtrl::CheckAll(const wxTreeItemId& id) {
     if (IsChecked(id)) return;
-    SetItemImage(id, static_cast<int>(ImageID::CHECK));
+    SetItemImage(id, IMAGE_ID_CHECK);
     wxTreeItemIdValue cookie;
     wxTreeItemId item;
     item = GetFirstChild(id, cookie);
@@ -79,9 +79,9 @@ void CustomTreeCtrl::UncheckAll(const wxTreeItemId& id) {
     if (!IsChecked(id)) return;
     int new_image_id;
     if (GetChildrenCount(id, false) > 0) {
-        new_image_id = static_cast<int>(ImageID::FOLDER);
+        new_image_id = IMAGE_ID_FOLDER;
     } else {
-        new_image_id = static_cast<int>(ImageID::FILE);
+        new_image_id = IMAGE_ID_FILE;
     }
     SetItemImage(id, new_image_id);
     wxTreeItemIdValue cookie;
@@ -111,11 +111,11 @@ void CustomTreeCtrl::UpdateParentStatus(const wxTreeItemId& root) {
 
     // update status
     if (all_checked && !IsChecked(root)) {
-        SetItemImage(root, static_cast<int>(ImageID::CHECK));
+        SetItemImage(root, IMAGE_ID_CHECK);
         UpdateParentStatus(GetItemParent(root));  // check parent as well
     }
     if (!all_checked && IsChecked(root)) {
-        SetItemImage(root, static_cast<int>(ImageID::FOLDER));
+        SetItemImage(root, IMAGE_ID_FOLDER);
         UpdateParentStatus(GetItemParent(root));  // check parent as well
     }
 }
@@ -139,9 +139,9 @@ void CustomTreeCtrl::UpdateAllStatus(const wxTreeItemId& root) {
 
     // update status
     if (all_checked) {
-        SetItemImage(root, static_cast<int>(ImageID::CHECK));
+        SetItemImage(root, IMAGE_ID_CHECK);
     } else {
-        SetItemImage(root, static_cast<int>(ImageID::FOLDER));
+        SetItemImage(root, IMAGE_ID_FOLDER);
     }
 }
 
