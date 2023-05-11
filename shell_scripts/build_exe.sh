@@ -17,4 +17,5 @@ pushd $(dirname "$0")/..
     cd ${build_type}
     cmake -D CMAKE_BUILD_TYPE=${build_type} -D BUILD_SHARED_LIBS=OFF ../
     cmake --build .
+    cp Release/FileListViewer ../
 popd

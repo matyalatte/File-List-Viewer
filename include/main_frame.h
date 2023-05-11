@@ -32,7 +32,7 @@ class MainFrame : public wxFrame {
     void OnFilter(wxCommandEvent& event);
 
  public:
-    MainFrame();
+    MainFrame(const wxString& title = wxEmptyString);
     void OpenFileList(wxString filename = "");
 };
 

@@ -1,6 +1,10 @@
 #include <wx/filename.h>
 #include "main_frame.h"
 
+static const std::string TOOL_NAME = "File List Viewer";
+static const std::string VERSION = "0.2.0";
+static const std::string AUTHOR = "matyalatte";
+
 // Main
 class MainApp : public wxApp {
  private:
@@ -16,7 +20,7 @@ bool MainApp::OnInit() {
     if (!wxApp::OnInit())
         return false;
     // make main window
-    m_frame = new MainFrame();
+    m_frame = new MainFrame(TOOL_NAME + " v" + VERSION);
     m_frame->Show();
 
     if (argc > 1) {
@@ -249,6 +253,11 @@ int wmain(int argc, wchar_t* argv[]) {
 #else
 int main(int argc, char* argv[]) {
 #endif
+    const std::string msg = " " + TOOL_NAME + " v" + VERSION + " by " + AUTHOR + " ";
+    std::cout << std::string(msg.length(), '-') << std::endl;
+    std::cout << msg << std::endl;
+    std::cout << std::string(msg.length(), '-') << std::endl;
+
     // Use GUI
     if (argc <= 1) return wxEntry(argc, argv);
 
@@ -286,7 +295,6 @@ int main(int argc, char* argv[]) {
     }
 
     success = PathToAbsolute(output_dir);
-    std::cout << output_dir << std::endl;
     if (!success) return 1;
 
     int ret = 0;

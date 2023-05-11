@@ -31,4 +31,5 @@ mkdir %~dp0\..\%BUILD_TYPE%
     echo CMake arguments: %OPTIONS%
     cmake %OPTIONS% ../
     cmake --build . --config %BUILD_TYPE%
+    copy Release\FileListViewer.exe ..\
 @popd

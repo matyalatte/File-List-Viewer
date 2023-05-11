@@ -1,12 +1,8 @@
 #include "main_frame.h"
 
-const std::string TOOL_NAME = "File List Viewer";
-const std::string VERSION = "0.2.0";
-
 // Main window
-MainFrame::MainFrame()
-    : wxFrame(nullptr, wxID_ANY, TOOL_NAME + " v" + VERSION) {
-    std::cout << TOOL_NAME << " v" << VERSION << " by matyalatte" << std::endl;
+MainFrame::MainFrame(const wxString& title)
+    : wxFrame(nullptr, wxID_ANY, title) {
     m_file_tree = std::make_unique<FileTree>();
     CreateFrame();
 }
