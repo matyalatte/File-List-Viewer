@@ -35,7 +35,6 @@ options="--disable-shared\
     --without-libxpm\
     --without-libjbig\
     --disable-glcanvasegl\
-    --disable-cmdline\
     --disable-filehistory\
     --disable-fontenum\
     --disable-fontmap\

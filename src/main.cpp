@@ -1,19 +1,46 @@
 #include <wx/filename.h>
+#include <wx/cmdline.h>
+#include <wx/msgout.h>
 #include "main_frame.h"
 
+// Metadata
 static const std::string TOOL_NAME = "File List Viewer";
 static const std::string VERSION = "0.2.0";
 static const std::string AUTHOR = "matyalatte";
 
-// Main
+// command-line arguments
+static const wxCmdLineEntryDesc cmd_line_desc[] =
+{
+    { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters",
+        wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+    { wxCMD_LINE_OPTION, "c", "cmd", "use command-line utils",
+        wxCMD_LINE_VAL_STRING},
+    { wxCMD_LINE_USAGE_TEXT, NULL, NULL,
+        "                          lower: convert paths to lower case strings\n"
+        "                          sort : sort paths in alphabetical order\n"
+        "                          mkdir: create folders that exist in the list"
+        },
+    { wxCMD_LINE_OPTION, "o", "out", "output directory for commands (defaults to 'out')",
+        wxCMD_LINE_VAL_STRING},
+    { wxCMD_LINE_OPTION, "f", "file", "output filename for commands (defaults to the input filename)",
+        wxCMD_LINE_VAL_STRING},
+    { wxCMD_LINE_PARAM,  NULL, NULL, "input file",
+        wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_NONE }
+};
+
 class MainApp : public wxApp {
  private:
     MainFrame* m_frame;
+    wxString m_input_file;
  public:
     MainApp(): wxApp() {
         m_frame = nullptr;
+        m_input_file = wxEmptyString;
     }
     bool OnInit() override;
+    void OnInitCmdLine(wxCmdLineParser& parser) override;
+    bool OnCmdLineParsed(wxCmdLineParser& parser) override;
 };
 
 bool MainApp::OnInit() {
@@ -22,60 +49,37 @@ bool MainApp::OnInit() {
     // make main window
     m_frame = new MainFrame(TOOL_NAME + " v" + VERSION);
     m_frame->Show();
-
-    if (argc > 1) {
-        m_frame->OpenFileList(argv[argc - 1]);
+    if (m_input_file != wxEmptyString) {
+        m_frame->OpenFileList(m_input_file);
     }
+    return true;
+}
 
+void MainApp::OnInitCmdLine(wxCmdLineParser& parser) {
+    parser.SetDesc (cmd_line_desc);
+    parser.SetSwitchChars (wxT("-"));
+}
+
+bool MainApp::OnCmdLineParsed(wxCmdLineParser& parser) {
+    size_t file_count = parser.GetParamCount();
+    if (file_count > 0) {
+        m_input_file = parser.GetParam();
+    }
     return true;
 }
 
 wxDECLARE_APP(MainApp);
 wxIMPLEMENT_APP_NO_MAIN(MainApp);
 
-void PrintHelp() {
-    static const char* const usage =
-        "Usage: FileListViewer <command> <options> <input_file>\n"
-        "\n"
-        "  <command>:\n"
-        "    --help: Show this massage.\n"
-        "    --lower: Convert paths to lower case.\n"
-        "    --sort: Sort paths in alphabetical order.\n"
-        "    --mkdir: Generate all folders that are in the path lists.\n"
-        "    `no command`: Open a file with GUI.\n"
-        "\n"
-        "  <options>:\n"
-        "    -o <dir>: Output folder for commands.\n"
-        "              (defaults to 'out')\n"
-        "    -f <file>: Output file name for commands.\n"
-        "               (defaults to the input file name.)\n"
-        "\n"
-        "Examples:\n"
-        "    FileListViewer input.txt\n"
-        "    FileListViewer --lower -o lowercase -f new.txt input.txt\n"
-        "    FileListViewer --sort -o sorted -f new.txt input.txt\n"
-        "    FileListViewer --mkdir -o dirs input.txt\n"
-        "\n";
-
-    printf("%s", usage);
-}
-
 #ifdef _WIN32
 const wxWCharBuffer wxStrToChar(const wxString& str) {
     return str.wc_str();
-}
-wxString CharToWxStr(const wchar_t* arg) {
-    return wxString(arg);
 }
 #else
 const wxScopedCharBuffer wxStrToChar(const wxString& str) {
     return str.utf8_str();
 }
-wxString CharToWxStr(const char* arg) {
-    return wxString::FromUTF8(arg);
-}
 #endif
-
 
 bool Mkdir(const wxString& dir) {
     if (!wxDirExists(dir)) {
@@ -175,7 +179,7 @@ int MakeDir(const wxString& i_file,
 
 enum COMMANDS : int {
     CMD_UNKNOWN,
-    CMD_HELP,
+    CMD_GUI,
     CMD_LOWER,
     CMD_SORT,
     CMD_MKDIR,
@@ -184,56 +188,15 @@ enum COMMANDS : int {
 
 int CommandToInt(const wxString& command) {
     static const std::map<wxString, int> COMMAND_MAP = {
-        {"--help", CMD_HELP},
-        {"--lower", CMD_LOWER},
-        {"--sort", CMD_SORT},
-        {"--mkdir", CMD_MKDIR}
+        {"lower", CMD_LOWER},
+        {"sort", CMD_SORT},
+        {"mkdir", CMD_MKDIR}
     };
 
     if (COMMAND_MAP.count(command) == 0) {
         return CMD_UNKNOWN;
     }
     return COMMAND_MAP.at(command);
-}
-
-bool ParseOptions(int argc, wchar_t* argv[],
-                  wxString& output_dir,
-                  wxString& output_filename,
-                  wxString& input_file) {
-    if (argc <= 2) return true;
-    
-    for (int i = 2; i < argc; i++) {
-        wxString arg(CharToWxStr(argv[i]));
-        if (arg[0] == "-"[0]) {
-            if (arg != "-o" && arg != "-f") {
-                PrintHelp();
-                std::cout << "Error: Unknown ooption. (" << arg << ")" << std::endl;
-                return false;
-            }
-            if (i + 1 >= argc) {
-                PrintHelp();
-                std::cout << "Error: '" << arg << "' option requires a path." << std::endl;
-                return false;
-            }
-            wxString path(CharToWxStr(argv[i + 1]));
-            if (arg == "-o") {
-                output_dir = path;
-            }
-            else {
-                output_filename = path;
-            }
-            i += 1;
-        }
-        else {
-            if (i + 1 < argc) {
-                PrintHelp();
-                std::cout << "Error: Unused arguments. (" << argv[i + 1] << ")" << std::endl;
-                return false;
-            }
-            input_file = arg;
-        }
-    }
-    return true;
 }
 
 bool PathToAbsolute(wxString& str) {
@@ -247,60 +210,82 @@ bool PathToAbsolute(wxString& str) {
     return true;
 }
 
-
 #ifdef _WIN32
 int wmain(int argc, wchar_t* argv[]) {
 #else
 int main(int argc, char* argv[]) {
 #endif
+    // Print Logo
     const std::string msg = " " + TOOL_NAME + " v" + VERSION + " by " + AUTHOR + " ";
     std::cout << std::string(msg.length(), '-') << std::endl;
     std::cout << msg << std::endl;
     std::cout << std::string(msg.length(), '-') << std::endl;
 
-    // Use GUI
-    if (argc <= 1) return wxEntry(argc, argv);
+    // Parse arguments
+    wxMessageOutputStderr* msgout = new wxMessageOutputStderr();
+    wxMessageOutput::Set(msgout);
+    wxCmdLineParser* parser = new wxCmdLineParser(argc, argv);
+    parser->SetDesc(cmd_line_desc);
+    parser->SetSwitchChars("-");
+    int ret = parser->Parse();
+    if (ret == -1) return 0;
+    if (ret > 0) return 1;
 
-    // Use command-line tool
-    wxString command(CharToWxStr(argv[1]));
-
-    if (command[0] != "-"[0]) return wxEntry(argc, argv);  // Open a file with GUI.
-
-    int cmd_id = CommandToInt(command);
-
-    if (cmd_id == CMD_UNKNOWN) {
-        PrintHelp();
-        std::cout << "Error: Unknown command. (" << command << ")" << std::endl;
-        return 1;
+    // Get command
+    wxString command = "";
+    int cmd_id;
+    bool found = parser->Found("c", &command);
+    if (found) {
+        cmd_id = CommandToInt(command);
+        if (cmd_id == CMD_UNKNOWN) {
+            parser->Usage();
+            std::cout << "Error: Unknown command. (" << command << ")" << std::endl;
+            return 1;
+        }
+    } else {  // no command-line utils
+        cmd_id = CMD_GUI;
     }
 
+    // Get options
     wxString output_dir = "out";
     wxString output_filename = "";
     wxString input_file = "";
-
-    bool success = ParseOptions(argc, argv, output_dir, output_filename, input_file);
-    if (!success) return 1;
-
-    if (cmd_id != CMD_HELP && input_file == "") {
-        PrintHelp();
-        std::cout << "Error: '" << command << "' command requires a file path." << std::endl;
+    found = parser->Found("o", &output_dir) || parser->Found("f", &output_filename);
+    if (found && cmd_id == CMD_GUI) {
+        parser->Usage();
+        std::cout << "Error: No need optional arguments for GUI." << std::endl;
         return 1;
     }
 
+    // Get input file
+    size_t file_count = parser->GetParamCount();
+    if (file_count > 0) {
+        input_file = parser->GetParam();
+    }
+
+    // Check arguments
+    if (cmd_id != CMD_GUI && input_file == "") {
+        parser->Usage();
+        std::cout << "Error: '" << command << "' command requires a file path." << std::endl;
+        return 1;
+    }
     if (output_filename == "") {
         wxString fname;
         wxString ext;
         wxFileName::SplitPath(input_file, nullptr, nullptr, &fname, &ext);
         output_filename = fname + "." + ext;
     }
-
-    success = PathToAbsolute(output_dir);
+    bool success = PathToAbsolute(output_dir);
     if (!success) return 1;
 
-    int ret = 0;
+    // Run command
+    delete parser;
+    wxMessageOutput::Set(nullptr);
+    delete msgout;
+    ret = 0;
     switch (cmd_id) {
-        case CMD_HELP:
-            PrintHelp();
+        case CMD_GUI:
+            ret = wxEntry(argc, argv);
             break;
         case CMD_LOWER:
             ret = Lower(input_file, output_dir, output_filename);
