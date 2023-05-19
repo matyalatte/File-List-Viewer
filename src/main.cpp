@@ -4,13 +4,12 @@
 #include "main_frame.h"
 
 // Metadata
-static const std::string TOOL_NAME = "File List Viewer";
-static const std::string VERSION = "0.2.0";
-static const std::string AUTHOR = "matyalatte";
+constexpr char* TOOL_NAME = "File List Viewer";
+constexpr char* VERSION = "0.2.0";
+constexpr char* AUTHOR = "matyalatte";
 
 // command-line arguments
-static const wxCmdLineEntryDesc cmd_line_desc[] =
-{
+static const wxCmdLineEntryDesc cmd_line_desc[] = {
     { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters",
         wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
     { wxCMD_LINE_OPTION, "c", "cmd", "uses command-line utils",
@@ -20,9 +19,11 @@ static const wxCmdLineEntryDesc cmd_line_desc[] =
         "                          sort : sorts paths in alphabetical order\n"
         "                          mkdir: creates folders that exist in the list"
         },
-    { wxCMD_LINE_OPTION, "o", "out", "output directory for commands (defaults to the directory of the input file)",
+    { wxCMD_LINE_OPTION, "o", "out",
+        "output directory for commands (defaults to the directory of the input file)",
         wxCMD_LINE_VAL_STRING},
-    { wxCMD_LINE_OPTION, "f", "file", "output filename for commands (defaults to the input filename + '.new')",
+    { wxCMD_LINE_OPTION, "f", "file",
+        "output filename for commands (defaults to the input filename + '.new')",
         wxCMD_LINE_VAL_STRING},
     { wxCMD_LINE_PARAM,  NULL, NULL, "input file",
         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
@@ -34,10 +35,7 @@ class MainApp : public wxApp {
     MainFrame* m_frame;
     wxString m_input_file;
  public:
-    MainApp(): wxApp() {
-        m_frame = nullptr;
-        m_input_file = wxEmptyString;
-    }
+    MainApp(): wxApp(), m_frame(nullptr), m_input_file(wxEmptyString) {}
     bool OnInit() override;
     void OnInitCmdLine(wxCmdLineParser& parser) override;
     bool OnCmdLineParsed(wxCmdLineParser& parser) override;
@@ -47,7 +45,7 @@ bool MainApp::OnInit() {
     if (!wxApp::OnInit())
         return false;
     // make main window
-    m_frame = new MainFrame(TOOL_NAME + " v" + VERSION);
+    m_frame = new MainFrame(std::string(TOOL_NAME) + " v" + VERSION);
     m_frame->Show();
     if (m_input_file != wxEmptyString) {
         m_frame->OpenFileList(m_input_file);
@@ -56,8 +54,8 @@ bool MainApp::OnInit() {
 }
 
 void MainApp::OnInitCmdLine(wxCmdLineParser& parser) {
-    parser.SetDesc (cmd_line_desc);
-    parser.SetSwitchChars (wxT("-"));
+    parser.SetDesc(cmd_line_desc);
+    parser.SetSwitchChars(wxT("-"));
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser& parser) {
@@ -109,6 +107,8 @@ bool Mkdir(const wxString& dir) {
         return 1; \
     }
 
+static const size_t MAX_PATH_LENGTH = 1000;
+
 int Lower(const wxString& i_file,
           const wxString& o_dir,
           const wxString& o_fname) {
@@ -117,9 +117,8 @@ int Lower(const wxString& i_file,
     if (!Mkdir(o_dir)) { return 1; }
     wxString o_file = o_dir + wxFileName::GetPathSeparator() + o_fname;
     OPEN_OSTREAM;
-    const size_t MAX_PATH_LENGTH = 1000;
     char line[MAX_PATH_LENGTH];
-    for (line; istream.getline(line, MAX_PATH_LENGTH); ) {
+    while (istream.getline(line, MAX_PATH_LENGTH)) {
         ostream << wxString::FromUTF8(line).Lower().ToUTF8().data() << "\n";
     }
     std::cout << "Done!" << std::endl;
@@ -133,10 +132,9 @@ int Sort(const wxString& i_file,
     OPEN_ISTREAM;
     if (!Mkdir(o_dir)) { return 1; }
 
-    const size_t MAX_PATH_LENGTH = 1000;
     char line[MAX_PATH_LENGTH];
     FileTree* file_tree = new FileTree();
-    for (line; istream.getline(line, MAX_PATH_LENGTH); ) {
+    while (istream.getline(line, MAX_PATH_LENGTH)) {
         file_tree->AddItem(&line[0]);
     }
 
@@ -145,7 +143,7 @@ int Sort(const wxString& i_file,
     try {
         file_tree->DumpPaths(ostream, nullptr);
     }
-    catch (std::exception e) {
+    catch (std::exception& e) {
         std::cout << e.what() << std::endl;
         return 1;
     }
@@ -160,16 +158,15 @@ int MakeDir(const wxString& i_file,
     OPEN_ISTREAM;
     if (!Mkdir(o_dir)) { return 1; }
 
-    const size_t MAX_PATH_LENGTH = 1000;
     char line[MAX_PATH_LENGTH];
     FileTree* file_tree = new FileTree();
-    for (line; istream.getline(line, MAX_PATH_LENGTH); ) {
+    while (istream.getline(line, MAX_PATH_LENGTH)) {
         file_tree->AddItem(&line[0]);
     }
     try {
         file_tree->MakeDir(o_dir);
     }
-    catch (std::exception e) {
+    catch (std::exception& e) {
         std::cout << e.what() << std::endl;
         return 1;
     }
@@ -216,7 +213,8 @@ int wmain(int argc, wchar_t* argv[]) {
 int main(int argc, char* argv[]) {
 #endif
     // Print Logo
-    const std::string msg = " " + TOOL_NAME + " v" + VERSION + " by " + AUTHOR + " ";
+    const std::string msg = std::string(" ") + TOOL_NAME + " v" + VERSION + " by " + AUTHOR + " ";
+
     std::cout << std::string(msg.length(), '-') << std::endl;
     std::cout << msg << std::endl;
     std::cout << std::string(msg.length(), '-') << std::endl;

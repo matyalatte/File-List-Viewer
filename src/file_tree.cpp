@@ -82,8 +82,7 @@ void FileTree::Filter(const std::string& filter, CustomTreeCtrl* tree_ctrl) {
     if (!HasChild()) {
         if (m_name.find(filter) == std::string::npos) {
             RemoveFromCtrl(tree_ctrl);
-        }
-        else {
+        } else {
             AddToCtrl(tree_ctrl);
         }
         return;

@@ -61,7 +61,7 @@ void MainFrame::CreateFrame() {
     SetSize(wxSize(320, 320));
 }
 
-const size_t MAX_PATH_LENGTH = 1000;
+static const size_t MAX_PATH_LENGTH = 1000;
 
 bool MainFrame::ReadFileList(const char* file) {
     // Read txt and store path list as tree
@@ -73,7 +73,7 @@ bool MainFrame::ReadFileList(const char* file) {
     }
     char line[MAX_PATH_LENGTH];
     m_file_tree = std::make_unique<FileTree>();
-    for (line; istream.getline(line, MAX_PATH_LENGTH); ) {
+    while (istream.getline(line, MAX_PATH_LENGTH)) {
         m_file_tree->AddItem(&line[0]);
     }
     return true;

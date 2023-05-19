@@ -1,9 +1,9 @@
 #pragma once
 #include <memory>
-#include <wx/wx.h>
-#include <wx/colour.h>
-#include <wx/stopwatch.h>
-#include <wx/dnd.h>
+#include "wx/wx.h"
+#include "wx/colour.h"
+#include "wx/dnd.h"
+#include "wx/stopwatch.h"
 #include "file_tree.h"
 #include "image_gen.h"
 
@@ -32,7 +32,7 @@ class MainFrame : public wxFrame {
     void OnFilter(wxCommandEvent& event);
 
  public:
-    MainFrame(const wxString& title = wxEmptyString);
+    explicit MainFrame(const wxString& title = wxEmptyString);
     void OpenFileList(wxString filename = "");
 };
 
