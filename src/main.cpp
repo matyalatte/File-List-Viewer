@@ -20,9 +20,9 @@ static const wxCmdLineEntryDesc cmd_line_desc[] =
         "                          sort : sorts paths in alphabetical order\n"
         "                          mkdir: creates folders that exist in the list"
         },
-    { wxCMD_LINE_OPTION, "o", "out", "output directory for commands (defaults to 'out')",
+    { wxCMD_LINE_OPTION, "o", "out", "output directory for commands (defaults to the directory of the input file)",
         wxCMD_LINE_VAL_STRING},
-    { wxCMD_LINE_OPTION, "f", "file", "output filename for commands (defaults to the input filename)",
+    { wxCMD_LINE_OPTION, "f", "file", "output filename for commands (defaults to the input filename + '.new')",
         wxCMD_LINE_VAL_STRING},
     { wxCMD_LINE_PARAM,  NULL, NULL, "input file",
         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Get options
-    wxString output_dir = "out";
+    wxString output_dir = "";
     wxString output_filename = "";
     wxString input_file = "";
     found = parser->Found("o", &output_dir) || parser->Found("f", &output_filename);
@@ -269,13 +269,23 @@ int main(int argc, char* argv[]) {
         std::cout << "Error: '" << command << "' command requires a file path." << std::endl;
         return 1;
     }
+    bool success = PathToAbsolute(input_file);
+    if (!success) return 1;
+
+
     if (output_filename == "") {
+        // defaults to the input file name + ".new"
         wxString fname;
         wxString ext;
         wxFileName::SplitPath(input_file, nullptr, nullptr, &fname, &ext);
-        output_filename = fname + "." + ext;
+        output_filename = fname + "." + ext + ".new";
     }
-    bool success = PathToAbsolute(output_dir);
+    if (output_dir == "") {
+        // defaults to the directory of the input file
+        output_dir = wxFileName(input_file).GetPath();
+    }
+
+    success = PathToAbsolute(output_dir);
     if (!success) return 1;
 
     // Run command
