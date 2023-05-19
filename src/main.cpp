@@ -13,12 +13,12 @@ static const wxCmdLineEntryDesc cmd_line_desc[] =
 {
     { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters",
         wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-    { wxCMD_LINE_OPTION, "c", "cmd", "use command-line utils",
+    { wxCMD_LINE_OPTION, "c", "cmd", "uses command-line utils",
         wxCMD_LINE_VAL_STRING},
     { wxCMD_LINE_USAGE_TEXT, NULL, NULL,
-        "                          lower: convert paths to lower case strings\n"
-        "                          sort : sort paths in alphabetical order\n"
-        "                          mkdir: create folders that exist in the list"
+        "                          lower: converts paths to lower case strings\n"
+        "                          sort : sorts paths in alphabetical order\n"
+        "                          mkdir: creates folders that exist in the list"
         },
     { wxCMD_LINE_OPTION, "o", "out", "output directory for commands (defaults to 'out')",
         wxCMD_LINE_VAL_STRING},
