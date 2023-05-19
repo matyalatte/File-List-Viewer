@@ -98,6 +98,7 @@ void FileTree::Filter(const std::string& filter, CustomTreeCtrl* tree_ctrl) {
 void FileTree::RemoveFromCtrl(CustomTreeCtrl* tree_ctrl) {
     if (!IsVisible() || !HasParent()) return;
     m_visible = false;
+    m_image_id = tree_ctrl->GetItemImage(m_wx_item);
     tree_ctrl->Delete(m_wx_item);
     if (tree_ctrl->ItemHasChildren(m_parent->GetId())) return;
     m_parent->RemoveFromCtrl(tree_ctrl);
@@ -108,6 +109,7 @@ void FileTree::AddToCtrl(CustomTreeCtrl* tree_ctrl) {
     if (HasParent()) m_parent->AddToCtrl(tree_ctrl);
     m_visible = true;
     m_wx_item = tree_ctrl->AppendItem(m_parent->GetId(), m_wx_name, m_image_id);
+    tree_ctrl->SetItemImage(m_wx_item, m_image_id);
 }
 
 void FileTree::MakeDir(const wxString& o_dir) {
