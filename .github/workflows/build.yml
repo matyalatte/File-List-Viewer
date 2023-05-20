@@ -82,6 +82,10 @@ jobs:
           cp FileListViewer.exe archive
           cp changelog.txt archive
           cp license.txt archive
+          cd batch_files
+          cp _lower.bat ../archive
+          cp _mkdir.bat ../archive
+          cp _sort.bat ../archive
         shell: bash
         
       - name: Archive Release

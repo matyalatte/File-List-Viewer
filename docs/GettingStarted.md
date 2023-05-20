@@ -44,16 +44,16 @@ wantit/that.jpg
 
 ## Create Directories
 
-You can drop a file onto `mkdir.bat` to make directories.  
+You can drop a file onto `_mkdir.bat` to make directories.  
 It'll make all directories that are written in the file.  
 Its root directory will be the same dir as the input file.  
 
 ## Sort Path List
 
-You can drop a file onto `sort.bat` to sort paths.  
+You can drop a file onto `_sort.bat` to sort paths.  
 The sorted list (`*.new`) will be generated in the same directory as the input file.  
 
 ## Convert Paths to Lower Case Strings
 
-You can drop a file onto `lower.bat` to convert paths to lower case strings.  
+You can drop a file onto `_lower.bat` to convert paths to lower case strings.  
 The converted list (`*.new`) will be generated in the same directory as the input file.  
