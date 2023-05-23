@@ -20,7 +20,6 @@ class CustomTreeCtrl : public wxTreeCtrl {
     bool m_is_saved;
     void OnActivated(wxTreeEvent& event);
     void OnItemMenu(wxTreeEvent& event);
-    void SelectAll();
     void UncheckAll(const wxTreeItemId& id);
     void CheckAll(const wxTreeItemId& id);
     void UpdateParentStatus(const wxTreeItemId& id);
@@ -33,6 +32,8 @@ class CustomTreeCtrl : public wxTreeCtrl {
     bool IsChecked(const wxTreeItemId& id);
     bool IsSaved() { return m_is_saved; }
     void SetSaveStatus(bool is_saved) { m_is_saved = is_saved; }
-    void UpdateAllStatus(const wxTreeItemId& id);
+    void UpdateAllStatus(const wxTreeItemId& id, bool is_root = true);
     void SortAll(const wxTreeItemId& id);
+    void SelectAll();
+    void SetEventItem(const wxTreeItemId& id) { m_event_item = id; }
 };

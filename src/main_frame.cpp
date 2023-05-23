@@ -116,28 +116,31 @@ void MainFrame::OpenFileList(wxString filename) {
     m_tree_ctrl->SetSaveStatus(true);
 }
 
-void MainFrame::SaveFileList() {
+void MainFrame::SaveFileList(wxString filename) {
     if (HasEmptyList()) {
         ShowSuccessDialog("File list is empty.", "Empty List");
         return;
     }
 
-    // File select
-    wxFileDialog save_file_dialog(this, _("Save File List"), "", "",
-                                  "file list (*)|*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (save_file_dialog.ShowModal() == wxID_CANCEL)
-        return;
+    if (filename == "") {
+        // File select
+        wxFileDialog save_file_dialog(this, _("Save File List"), "", "",
+                                    "file list (*)|*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (save_file_dialog.ShowModal() == wxID_CANCEL)
+            return;
+        filename = save_file_dialog.GetPath();
+    }
 
     // Dump path list as txt
-    std::cout << "Saving " << save_file_dialog.GetPath() << "... ";
-    std::ofstream ostream(save_file_dialog.GetPath().ToUTF8().data());
+    std::cout << "Saving " << filename << "... " << std::endl;
+    std::ofstream ostream(filename.ToUTF8().data());
     if (!ostream) {
-        ShowErrorDialog("Error: Failed to open " + save_file_dialog.GetPath());
+        ShowErrorDialog("Error: Failed to open " + filename);
         return;
     }
     m_file_tree->DumpPaths(ostream, m_tree_ctrl);
 
-    ShowSuccessDialog("Saved as " + save_file_dialog.GetPath() + ".", "Saved");
+    ShowSuccessDialog("Saved as " + filename + ".", "Saved");
     m_tree_ctrl->SetSaveStatus(true);
 }
 
@@ -153,6 +156,7 @@ void MainFrame::OnOpenURL(wxCommandEvent& event) {
 
 void MainFrame::ShowErrorDialog(const wxString& msg) {
     wxMessageDialog* dialog;
+    std::cout << msg << std::endl;
     dialog = new wxMessageDialog(this, msg, "Error", wxICON_ERROR | wxOK | wxCENTRE);
     dialog->ShowModal();
     dialog->Destroy();

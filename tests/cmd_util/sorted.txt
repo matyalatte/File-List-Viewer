@@ -1,0 +1,6 @@
+A/bar.txt
+A/foo.jpg
+C
+Z/test/sample.png
+a/hello.sh
+b/Test

@@ -1,32 +1,61 @@
-#general
-build
-out
-Release*
-Debug*
-coverage-report
-*.json
+# general
 *.txt
 !tests/*.txt
+!tests/*/*.txt
 !changelog.txt
 !CMakeLists.txt
 !license.txt
 !WX_VERSION.txt
 *.list
+*.new
 
-#for windows
-.vs*
-out
-*.exe
-*.zip
 *.bat
 !batch_files/*.bat
 
-# for unix
 *.sh
 !shell_scripts/*.sh
+
+# built files
+*.exe
+*.zip
+
+SimpleCommandRunner
 *.tar.*
+
+# intermediate files
+build
+Release*
+Debug*
+*.json
+*.log
+*.cmake
+
+.vs*
+out
+*.ilk
+*.pdb
+*.obj
+*.lib
+*.bin
+*.ninja
+*.manifest
+*.rc
+*.res
+*.ninja
+
+*.a
+*.o
+*.o.d
+*.internal
+*.test
+*.make
 
 # for test scripts
 python
 *.py
 
+# coverage report
+coverage-report
+*.png
+*.css
+*.html

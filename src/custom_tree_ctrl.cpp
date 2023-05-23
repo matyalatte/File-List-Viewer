@@ -120,7 +120,7 @@ void CustomTreeCtrl::UpdateParentStatus(const wxTreeItemId& root) {
     }
 }
 
-void CustomTreeCtrl::UpdateAllStatus(const wxTreeItemId& root) {
+void CustomTreeCtrl::UpdateAllStatus(const wxTreeItemId& root, bool is_root) {
     if (!root.IsOk() || !ItemHasChildren(root)) return;
 
     // check if all children are checked
@@ -129,8 +129,8 @@ void CustomTreeCtrl::UpdateAllStatus(const wxTreeItemId& root) {
     wxTreeItemId item;
     item = GetFirstChild(root, cookie);
     while (item.IsOk()) {
-        UpdateAllStatus(item);
-        if (!IsChecked(item)) {
+        UpdateAllStatus(item, false);
+        if (!IsChecked(item) && !is_root) {
             all_checked = false;
             break;
         }

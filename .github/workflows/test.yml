@@ -1,0 +1,55 @@
+name: test
+
+on:
+  workflow_dispatch:
+  
+env:
+  ZIP_NAME: FileListViewer
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      wx_version: ${{ steps.wx-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check wxWidget version
+        id: wx-version
+        run: |
+          VERSION=$(cat WX_VERSION.txt)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - run: pip install cpplint
+      - run: cpplint --recursive --quiet .
+
+  test_windows:
+    runs-on: windows-2022
+    needs: [setup, lint]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Cache wxWidget
+        uses: actions/cache@v3
+        id: cache-wx
+        with:
+            path: "C:/wxWidgets-${{ needs.setup.outputs.wx_version }}"
+            key: ${{ runner.os }}-wx${{ needs.setup.outputs.wx_version }}
+        
+      - name: install wxWidget
+        if: steps.cache-wx.outputs.cache-hit != 'true'
+        run: |
+          cd batch_files
+          ./download_wxWidgets.bat
+          ./build_wxWidgets.bat
+
+      - name: build and run tests
+        run: |
+          cd batch_files
+          ./test.bat

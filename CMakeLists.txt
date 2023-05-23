@@ -22,18 +22,24 @@ endif()
 # set(CMAKE_FIND_DEBUG_MODE TRUE)
 find_package(wxWidgets REQUIRED COMPONENTS core base)
 include(${wxWidgets_USE_FILE})
+
+# make a lib
 include_directories(include)
+add_library(${PROJECT_NAME}_lib STATIC
+	"src/main_frame.cpp"
+	"src/file_tree.cpp"
+	"src/image_gen.cpp"
+	"src/custom_tree_ctrl.cpp"
+	"src/cmd_util.cpp"
+)
+target_link_libraries(${PROJECT_NAME}_lib
+	${wxWidgets_LIBRARIES}
+)
 
 # add main app
 if (BUILD_EXE)
-	add_executable(${PROJECT_NAME}
-		"src/main.cpp"
-		"src/main_frame.cpp"
-		"src/file_tree.cpp"
-		"src/image_gen.cpp"
-		"src/custom_tree_ctrl.cpp"
-	)
-	target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES})
+	add_executable(${PROJECT_NAME} "src/main.cpp")
+	target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
 endif()
 
 #------------------------------

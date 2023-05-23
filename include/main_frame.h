@@ -15,14 +15,15 @@ class MainFrame : public wxFrame {
     wxPanel* m_panel;
     wxImageList* m_image_list;
     FileDropTarget* m_drop_target;
+    wxString m_old_filter;
+
+ protected:
     CustomTreeCtrl* m_tree_ctrl;
     std::unique_ptr<FileTree> m_file_tree;
     wxTextCtrl* m_filter_ctrl;
-    wxString m_old_filter;
 
     void CreateFrame();
     bool ReadFileList(const char* file);
-    void SaveFileList();
     void OnClose(wxCloseEvent& event);
     void OnOpenURL(wxCommandEvent& event);
     void ShowErrorDialog(const wxString& msg);
@@ -34,6 +35,7 @@ class MainFrame : public wxFrame {
  public:
     explicit MainFrame(const wxString& title = wxEmptyString);
     void OpenFileList(wxString filename = "");
+    void SaveFileList(wxString filename = "");
 };
 
 // Set this target to m_tree_ctrl.
