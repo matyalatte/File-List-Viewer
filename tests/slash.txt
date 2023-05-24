@@ -1,2 +1,0 @@
-slash\test.txt
-slash\good.png

@@ -11,32 +11,28 @@ namespace cmd_util {
     }
     #endif
 
-    bool Mkdir(const wxString& dir) {
+    void Mkdir(const wxString& dir) {
         if (!wxDirExists(dir)) {
             wxString parent = wxFileName(dir).GetPath();
-            if (!Mkdir(parent)) return false;
+            Mkdir(parent);
             if (!wxMkdir(dir)) {
-                std::cout << "Error: Failed to make " << dir << std::endl;
-                return false;
+                throw std::runtime_error("Error: Failed to make " + dir);
             }
         }
-        return true;
     }
 
     #define OPEN_ISTREAM \
         std::cout << "Reading " << i_file << "..." << std::endl; \
         std::ifstream istream(wxStrToChar(i_file)); \
         if (!istream) { \
-            std::cout << "Error: Failed to open " << i_file << std::endl; \
-            return 1; \
+            throw std::runtime_error("Error: Failed to open " + i_file); \
         }
 
     #define OPEN_OSTREAM \
         std::cout << "Writing " << o_file << "..." << std::endl; \
         std::ofstream ostream(wxStrToChar(o_file)); \
         if (!ostream) { \
-            std::cout << "Error: Failed to open " << o_file << std::endl; \
-            return 1; \
+            throw std::runtime_error("Error: Failed to open " + o_file); \
         }
 
     static const size_t MAX_PATH_LENGTH = 1000;
@@ -45,34 +41,44 @@ namespace cmd_util {
             const wxString& o_dir,
             const wxString& o_fname) {
         std::cout << "Converting all paths to lower case..." << std::endl;
-        OPEN_ISTREAM;
-        if (!Mkdir(o_dir)) { return 1; }
-        wxString o_file = o_dir + wxFileName::GetPathSeparator() + o_fname;
-        OPEN_OSTREAM;
-        char line[MAX_PATH_LENGTH];
-        while (istream.getline(line, MAX_PATH_LENGTH)) {
-            ostream << wxString::FromUTF8(line).Lower().ToUTF8().data() << "\n";
+        try {
+            OPEN_ISTREAM;
+            Mkdir(o_dir);
+            wxString o_file = o_dir + wxFileName::GetPathSeparator() + o_fname;
+            OPEN_OSTREAM;
+            char line[MAX_PATH_LENGTH];
+            while (istream.getline(line, MAX_PATH_LENGTH)) {
+                ostream << wxString::FromUTF8(line).Lower().ToUTF8().data() << "\n";
+            }
+        }
+        catch (std::exception& e) {
+            std::cout << e.what() << std::endl;
+            return 1;
         }
         std::cout << "Done!" << std::endl;
         return 0;
+    }
+
+    FileTree* ReadFileList(const wxString& i_file) {
+        OPEN_ISTREAM;  // std::ifstream istream(i_file)
+        char line[MAX_PATH_LENGTH];
+        FileTree* file_tree = new FileTree();
+        while (istream.getline(line, MAX_PATH_LENGTH)) {
+            if (line[0] == 0) continue;
+            file_tree->AddItem(&line[0]);
+        }
+        return file_tree;
     }
 
     int Sort(const wxString& i_file,
             const wxString& o_dir,
             const wxString& o_fname) {
         std::cout << "Sorting paths..." << std::endl;
-        OPEN_ISTREAM;
-        if (!Mkdir(o_dir)) { return 1; }
-
-        char line[MAX_PATH_LENGTH];
-        FileTree* file_tree = new FileTree();
-        while (istream.getline(line, MAX_PATH_LENGTH)) {
-            file_tree->AddItem(&line[0]);
-        }
-
-        wxString o_file = o_dir + wxFileName::GetPathSeparator() + o_fname;
-        OPEN_OSTREAM;
         try {
+            FileTree* file_tree = ReadFileList(i_file);
+            Mkdir(o_dir);
+            wxString o_file = o_dir + wxFileName::GetPathSeparator() + o_fname;
+            OPEN_OSTREAM;
             file_tree->DumpPaths(ostream, nullptr);
         }
         catch (std::exception& e) {
@@ -86,16 +92,9 @@ namespace cmd_util {
     int MakeDir(const wxString& i_file,
                 const wxString& o_dir) {
         std::cout << "Creating a folder tree from path list..." << std::endl;
-
-        OPEN_ISTREAM;
-        if (!Mkdir(o_dir)) { return 1; }
-
-        char line[MAX_PATH_LENGTH];
-        FileTree* file_tree = new FileTree();
-        while (istream.getline(line, MAX_PATH_LENGTH)) {
-            file_tree->AddItem(&line[0]);
-        }
         try {
+            FileTree* file_tree = ReadFileList(i_file);
+            Mkdir(o_dir);
             file_tree->MakeDir(o_dir);
         }
         catch (std::exception& e) {

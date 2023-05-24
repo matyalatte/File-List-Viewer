@@ -74,6 +74,7 @@ bool MainFrame::ReadFileList(const char* file) {
     char line[MAX_PATH_LENGTH];
     m_file_tree = std::make_unique<FileTree>();
     while (istream.getline(line, MAX_PATH_LENGTH)) {
+        if (line[0] == 0) continue;
         m_file_tree->AddItem(&line[0]);
     }
     return true;

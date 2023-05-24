@@ -1,0 +1,4 @@
+/unix/trash/bin
+/unix/what.txt
+C:/windows/a.bat
+C:/windows/folder/

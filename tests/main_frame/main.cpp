@@ -85,6 +85,26 @@ TEST(MainFrameTest, ExportAllPaths) {
     EXPECT_TRUE(test_util::HasSameList(test_list, file));
 }
 
+TEST(MainFrameTest, AbsolutePaths) {
+    std::string test_list = std::string(test_source_dir) + "/abs_path.txt";
+    TestFrame* main_frame = new TestFrame();
+    main_frame->OpenFileList(test_list);
+    main_frame->SelectAll(true);
+    std::string file = GetOutDir() + "/abs_path.txt";
+    main_frame->SaveFileList(file);
+    EXPECT_TRUE(test_util::HasSameList(test_list, file));
+}
+
+TEST(MainFrameTest, BackSlashPaths) {
+    std::string test_list = std::string(test_source_dir) + "/back_slash.txt";
+    TestFrame* main_frame = new TestFrame();
+    main_frame->OpenFileList(test_list);
+    main_frame->SelectAll(true);
+    std::string file = GetOutDir() + "/back_slash.txt";
+    main_frame->SaveFileList(file);
+    EXPECT_TRUE(test_util::HasSameList(GetTestList(), file));
+}
+
 TEST(MainFrameTest, UncheckAllPaths) {
     TestFrame* main_frame = new TestFrame();
     main_frame->OpenFileList(GetTestList());

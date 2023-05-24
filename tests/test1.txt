@@ -1,5 +1,0 @@
-noneed/foo/bar.png
-noneed/foo/hello.txt
-wantit/test/this.txt
-wantit/that.jpg
-what

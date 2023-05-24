@@ -1,31 +1,32 @@
 #include "file_tree.h"
 
-char* GetChildPath(char* path) {
-    // split char* by "/"" or "\"
-    // "path" will be root dir name, "chr" will be the rest.
+bool SplitPath(char* path, char*& child_path) {
+    // Split path by "/" or "\".
+    // "path" will be the root dir name.
+    // "child_path" will be the rest.
+    bool splitted = false;
     char* chr;
     for (chr = path; *chr; ++chr) {
         if (chr[0] == 0x2F || chr[0] == 0x5C) {
             chr[0] = 0;
             chr += 1;
+            splitted = true;
             break;
         }
     }
-    return chr;
+    child_path = chr;
+    return splitted;
 }
 
 void FileTree::AddItem(char* path) {
-    char* item_path = GetChildPath(path);
+    char* child_path = nullptr;
+    bool is_dir = SplitPath(path, child_path);
     std::string item_name = std::string(path);
-    if (item_name == "" && item_path[0] == 0) {
-        return;
-    }
     if (m_items.count(item_name) == 0) {
-        FileTree* new_item = new FileTree(this, item_name);
-        new_item->AddItem(item_path);
-        m_items[item_name] = new_item;
-    } else {
-        m_items[item_name]->AddItem(item_path);
+        m_items[item_name] = new FileTree(this, item_name);
+    }
+    if (is_dir) {
+        m_items[item_name]->AddItem(child_path);
     }
 }
 
