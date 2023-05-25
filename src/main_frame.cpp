@@ -77,6 +77,7 @@ bool MainFrame::ReadFileList(const char* file) {
         if (line[0] == 0) continue;
         m_file_tree->AddItem(&line[0]);
     }
+    std::cout << m_file_tree->GetSize() << " paths detected." << std::endl;
     return true;
 }
 

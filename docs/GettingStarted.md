@@ -8,8 +8,8 @@ And each line should have a file path like this.
 ```
 noneed/foo/bar.png
 noneed/foo/hello.txt
-wantit/test/this.txt
-wantit/that.jpg
+wantit\test\this.txt
+wantit\that.jpg
 what
 ```
 
@@ -47,6 +47,9 @@ wantit/that.jpg
 You can drop a file onto `_mkdir.bat` to make directories.  
 It'll make all directories that are written in the file.  
 Its root directory will be the same dir as the input file.  
+
+> Note that it doesn't support absolute paths.  
+> (e.g. `C:\windows\foo\bar`, `/unix/abc/def`)  
 
 ## Sort Path List
 

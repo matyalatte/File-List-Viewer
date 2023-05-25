@@ -55,4 +55,5 @@ class FileTree {
     bool HasChild() { return m_items.size() > 0; }
     bool IsVisible() { return m_visible; }
     std::map<std::string, FileTree*> GetItems() { return m_items; }
+    size_t GetSize();
 };

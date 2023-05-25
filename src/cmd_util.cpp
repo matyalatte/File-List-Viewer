@@ -67,6 +67,7 @@ namespace cmd_util {
             if (line[0] == 0) continue;
             file_tree->AddItem(&line[0]);
         }
+        std::cout << file_tree->GetSize() << " paths detected." << std::endl;
         return file_tree;
     }
 

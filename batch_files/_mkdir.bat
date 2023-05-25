@@ -1,4 +1,6 @@
 @echo off
+REM Makes directories from paths
+
 @if "%~1"=="" goto skip
 
 @pushd %~dp0

@@ -30,6 +30,7 @@ You can download executables from [the release page](https://github.com/matyalat
 
 ## License
 
-Files in this repository are licensed under [wxWindows Library Licence](../license.txt).  
-It is a modified version of LGPL explicitly allowing not distributing
-the sources of an application using the library even in the case of static linking.  
+Files in this repository are available under [wxWindows Library Licence](../license.txt).  
+
+> It is a modified version of LGPL explicitly allowing not distributing
+> the sources of an application using the library even in the case of static linking.  

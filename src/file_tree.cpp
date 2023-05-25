@@ -123,3 +123,12 @@ void FileTree::MakeDir(const wxString& o_dir) {
         iter->second->MakeDir(new_o_dir);
     }
 }
+
+size_t FileTree::GetSize() {
+    if (!HasChild()) return 1;
+    size_t size = 0;
+    for (auto iter = m_items.begin(); iter != m_items.end(); ++iter) {
+        size += iter->second->GetSize();
+    }
+    return size;
+}
